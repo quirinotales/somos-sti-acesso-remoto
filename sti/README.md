@@ -41,17 +41,17 @@ formato do arquivo permite.
 ## Versões
 
 - A versão do código de origem continua em `Cargo.toml` (por exemplo `1.1.16-sctg.9`). Não mexemos nela.
-- A versão da STI é a da release: `sti-v<ano>.<mês>.<sequência>`, por exemplo `sti-v2026.11.1`.
+- A versão da STI fica em `sti/VERSAO` (`<ano>.<mês>.<sequência>`) e vira a release `sti-v<versão>`, por exemplo `sti-v2026.11.1`.
 
 ## Gerar uma versão do servidor
 
 ```bash
 git checkout sti
-git tag sti-v2026.11.1
-git push origin sti-v2026.11.1
+echo 2026.11.2 > sti/VERSAO          # sempre um número maior que o anterior
+git commit -am "Versão 2026.11.2" && git push origin sti
 ```
 
-O GitHub Actions compila sozinho. Ao terminar, a release `sti-v2026.11.1` terá o pacote e o arquivo
+O push do arquivo `sti/VERSAO` faz o GitHub Actions compilar sozinho. Ao terminar, a release `sti-v2026.11.1` terá o pacote e o arquivo
 `SHA256SUMS`.
 
 ## Receber atualizações do projeto de origem
