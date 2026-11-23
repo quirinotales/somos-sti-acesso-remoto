@@ -305,8 +305,14 @@ EOF
   fi
   systemctl reload nginx
 
-  local codigo
-  codigo="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "https://$ENDERECO/ui/" || true)"
+  # O reload do Nginx leva um instante: nos primeiros milissegundos ainda responde a configuração
+  # antiga (com o certificado de outro site). Por isso a conferência espera e tenta algumas vezes.
+  local codigo=""
+  for _ in $(seq 1 10); do
+    sleep 2
+    codigo="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "https://$ENDERECO/ui/" 2>/dev/null || true)"
+    [ "$codigo" = 200 ] && break
+  done
   if [ "$codigo" = 200 ]; then
     verde "Painel publicado: https://$ENDERECO/"
   else
