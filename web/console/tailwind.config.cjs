@@ -7,12 +7,15 @@ This website use:
 - And many others
 */
 /** @type {import('tailwindcss').Config} */
+const stiTema = require('./sti-tema.cjs') // Somos STI: paleta da marca
+
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}',"./node_modules/flowbite/**/*.js"],
   // safelist: (process.env.NODE_ENV !== 'development') ? [] : [{ pattern: /.*/ }], // DON'T DO THAT FOR NORMAL DEVELOPMENT - ONLY FOR LIVE MODIFICATIONS IN DEVTOOLS
   theme: {
     extend: {
       colors: {
+        ...stiTema,
         hcfdark: '#0e6835',
         hcflight: '#95be1f',
         hcfcardinal: '#882647',

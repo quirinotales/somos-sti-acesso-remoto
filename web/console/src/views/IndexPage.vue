@@ -13,7 +13,7 @@ This website use:
         <div class="flex h-16 items-center justify-between">
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <img class="h-8 w-8" :src="$require('@/assets/sctg.svg')" alt="Your Company" />
+              <img class="h-8 w-8" :src="stiIcone" :alt="STI.nome" />
             </div>
             <div class="hidden md:block">
               <div class="ml-10 flex items-baseline space-x-4">
@@ -160,7 +160,8 @@ This website use:
 </template>
 
 <script setup lang="ts">
-import { $require } from '@/utilities/viteHelper.js'
+import stiIcone from '@/assets/sti-icone.png' // Somos STI
+import { STI } from '@/config/sti'
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, BookOpenIcon, XMarkIcon } from '@heroicons/vue/24/outline'
 import { useRouter } from 'vue-router';

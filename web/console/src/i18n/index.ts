@@ -18,6 +18,7 @@ import enUS from './locales/en-US'
 import frFR from './locales/fr-FR'
 import deDE from './locales/de-DE'
 import esES from './locales/es-ES'
+import ptBR from './locales/pt-BR'
 import ptPT from './locales/pt-PT'
 import itIT from './locales/it-IT'
 
@@ -30,7 +31,8 @@ export const LOCALES = [
   { code: 'fr-FR', label: 'Français' },
   { code: 'de-DE', label: 'Deutsch' },
   { code: 'es-ES', label: 'Español' },
-  { code: 'pt-PT', label: 'Português' },
+  { code: 'pt-BR', label: 'Português (Brasil)' },
+  { code: 'pt-PT', label: 'Português (Portugal)' },
   { code: 'it-IT', label: 'Italiano' },
 ] as const
 
@@ -41,12 +43,14 @@ const MESSAGES: Record<LocaleCode, Messages> = {
   'fr-FR': frFR,
   'de-DE': deDE,
   'es-ES': esES,
+  'pt-BR': ptBR,
   'pt-PT': ptPT,
   'it-IT': itIT,
 }
 
 const STORAGE_KEY = 'sctgdesk.locale'
-const DEFAULT_LOCALE: LocaleCode = 'en-US'
+// Somos STI: o painel abre em português do Brasil quando o navegador não indica outro idioma suportado.
+const DEFAULT_LOCALE: LocaleCode = 'pt-BR'
 
 /** True when `code` is one of the supported locales (the server uses the same list). */
 export function isLocale(code: unknown): code is LocaleCode {

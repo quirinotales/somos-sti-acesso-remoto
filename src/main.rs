@@ -71,8 +71,14 @@ async fn start_rocket() -> ResultType<()> {
     if std::env::var("API_SERVER").map_or(true, |v| v.is_empty()) {
         std::env::set_var("API_SERVER", format!("http://127.0.0.1:{port}"));
     }
+    // Somos STI: API_ADDRESS limits where the API and the console listen (for example 127.0.0.1 when a TLS
+    // reverse proxy on the same machine is the only way in). Unset or empty keeps the upstream default.
+    let address = std::env::var("API_ADDRESS")
+        .ok()
+        .filter(|v| !v.trim().is_empty())
+        .unwrap_or_else(|| "0.0.0.0".to_string());
     let figment = rocket::Config::figment()
-        .merge(("address", "0.0.0.0"))
+        .merge(("address", address))
         .merge(("port", port))
         .merge(("log_level", get_rocket_log_level()))
         .merge(("secret_key", get_or_create_secret_key()))

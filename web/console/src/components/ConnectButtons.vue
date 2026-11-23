@@ -32,7 +32,7 @@ Icons only, with a tooltip and an accessible name: the buttons sit in table cell
 <script setup lang="ts">
 import { computed } from 'vue'
 import { t } from '@/i18n'
-import logo from '@/assets/sctg.svg'
+import logo from '@/assets/sti-icone.png'
 import { nativeClientUrl, openWebClient, webClientAvailable } from '@/utilities/webclient'
 
 const props = defineProps<{

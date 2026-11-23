@@ -26,7 +26,7 @@ use sqlx::Row;
 use utils::{UserProfile, UserProfileUpdate};
 
 /// The languages of the console.
-pub const LANGUAGES: [&str; 6] = ["en-US", "fr-FR", "de-DE", "es-ES", "pt-PT", "it-IT"];
+pub const LANGUAGES: [&str; 7] = ["en-US", "fr-FR", "de-DE", "es-ES", "pt-BR", "pt-PT", "it-IT"];
 /// The biggest avatar kept, once decoded. The console shrinks pictures before sending them.
 pub const MAX_AVATAR_BYTES: usize = 256 * 1024;
 /// The shortest password accepted when a user changes it.

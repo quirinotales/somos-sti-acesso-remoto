@@ -949,7 +949,7 @@ pub struct UserProfile {
     pub admin: bool,
     /// A `data:image/...;base64,...` URL.
     pub avatar: Option<String>,
-    /// One of `en-US`, `fr-FR`, `de-DE`, `es-ES`, `pt-PT`, `it-IT`.
+    /// One of `en-US`, `fr-FR`, `de-DE`, `es-ES`, `pt-BR`, `pt-PT`, `it-IT`.
     pub language: Option<String>,
 }
 

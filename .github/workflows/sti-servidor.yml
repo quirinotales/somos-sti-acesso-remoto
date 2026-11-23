@@ -1,0 +1,101 @@
+# Somos STI Acesso Remoto - compila o servidor (hbbs, hbbr e o painel embutido) e publica como release.
+#
+# Como usar: aba Actions > "STI - servidor" > Run workflow > informe a versão (ex.: 2026.11.1).
+# Resultado: release "sti-v<versão>" com o arquivo somos-sti-servidor-<versão>-linux-amd64.tar.gz e o SHA256SUMS.
+# O script sti/servidor/atualizar-servidor.sh baixa esse arquivo no servidor e confere o SHA-256.
+#
+# Não usa nenhum segredo: só o GITHUB_TOKEN padrão, para criar a release.
+name: STI - servidor
+
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: "Versão da STI (ano.mês.sequência), por exemplo 2026.11.1"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sti-servidor-${{ inputs.versao }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  DATABASE_URL: sqlite://${{ github.workspace }}/db_v2.sqlite3
+  TARGET: x86_64-unknown-linux-musl
+
+jobs:
+  servidor:
+    name: Linux amd64 (binários estáticos)
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Confere o formato da versão
+        env:
+          VERSAO: ${{ inputs.versao }}
+        run: |
+          echo "$VERSAO" | grep -Eq '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$' || {
+            echo "::error::use o formato ano.mês.sequência, por exemplo 2026.11.1"; exit 1; }
+          echo "VERSAO=$VERSAO" >> "$GITHUB_ENV"
+          echo "PACOTE=somos-sti-servidor-$VERSAO-linux-amd64" >> "$GITHUB_ENV"
+
+      - name: Ferramentas de compilação
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ env.TARGET }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: sti-servidor-${{ env.TARGET }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Compila (o painel web é montado e embutido no hbbs)
+        run: cargo build --release --locked --bins --target "$TARGET"
+
+      - name: Os binários são estáticos e executam
+        run: |
+          bin="target/$TARGET/release"
+          for b in hbbs hbbr rustdesk-utils; do
+            if ldd "$bin/$b" 2>&1 | grep -qE 'not a dynamic executable|statically linked'; then
+              echo "$b é estático"
+            else
+              echo "::error::$b não é estático"; ldd "$bin/$b"; exit 1
+            fi
+          done
+          "$bin/hbbs" --version
+          "$bin/hbbr" --version
+
+      - name: O painel embutido é o da STI
+        run: |
+          grep -aq "Somos STI Acesso Remoto" "target/$TARGET/release/hbbs" || {
+            echo "::error::o painel embutido não tem a marca da STI"; exit 1; }
+
+      - name: Monta o pacote
+        run: |
+          mkdir -p "dist/$PACOTE"
+          cp "target/$TARGET/release/hbbs" "target/$TARGET/release/hbbr" "target/$TARGET/release/rustdesk-utils" "dist/$PACOTE/"
+          cp LICENSE "dist/$PACOTE/LICENSE"
+          printf 'Somos STI Acesso Remoto - servidor %s\nCommit: %s\nCódigo-fonte: %s/%s\nLicença: AGPL-3.0 (ver LICENSE)\n' \
+            "$VERSAO" "$GITHUB_SHA" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" > "dist/$PACOTE/VERSAO.txt"
+          tar -C dist -czf "dist/$PACOTE.tar.gz" "$PACOTE"
+          (cd dist && sha256sum "$PACOTE.tar.gz" > SHA256SUMS && cat SHA256SUMS)
+
+      - name: Publica a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "sti-v$VERSAO" "dist/$PACOTE.tar.gz" dist/SHA256SUMS \
+            --target "$GITHUB_SHA" \
+            --title "Somos STI Acesso Remoto - servidor $VERSAO" \
+            --notes "Servidor (hbbs, hbbr) com o painel da STI embutido. Binários estáticos para Linux amd64. Confira o SHA-256 antes de instalar."
