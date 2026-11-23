@@ -45,9 +45,14 @@ formato do arquivo permite.
 
 ## Gerar uma versão do servidor
 
-1. Aba **Actions** > **STI - servidor** > **Run workflow**.
-2. Informe a versão, por exemplo `2026.11.1`.
-3. Ao terminar, a release `sti-v2026.11.1` terá o pacote e o arquivo `SHA256SUMS`.
+```bash
+git checkout sti
+git tag sti-v2026.11.1
+git push origin sti-v2026.11.1
+```
+
+O GitHub Actions compila sozinho. Ao terminar, a release `sti-v2026.11.1` terá o pacote e o arquivo
+`SHA256SUMS`.
 
 ## Receber atualizações do projeto de origem
 
@@ -55,7 +60,7 @@ formato do arquivo permite.
 git remote add origem https://github.com/sctg-development/sctgdesk-server   # só na primeira vez
 git fetch origem
 git checkout sti
-git merge origem/main
+git merge origem/tcpserver-master-build
 ```
 
 Conflitos, se houver, ficam restritos aos arquivos da tabela acima. Depois do merge:

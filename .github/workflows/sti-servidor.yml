@@ -1,6 +1,8 @@
 # Somos STI Acesso Remoto - compila o servidor (hbbs, hbbr e o painel embutido) e publica como release.
 #
-# Como usar: aba Actions > "STI - servidor" > Run workflow > informe a versão (ex.: 2026.11.1).
+# Como usar (qualquer um dos dois):
+#   - criar e enviar a tag:  git tag sti-v2026.11.1 && git push origin sti-v2026.11.1
+#   - ou, com este arquivo no branch padrão: aba Actions > "STI - servidor" > Run workflow > versão 2026.11.1
 # Resultado: release "sti-v<versão>" com o arquivo somos-sti-servidor-<versão>-linux-amd64.tar.gz e o SHA256SUMS.
 # O script sti/servidor/atualizar-servidor.sh baixa esse arquivo no servidor e confere o SHA-256.
 #
@@ -8,6 +10,9 @@
 name: STI - servidor
 
 on:
+  push:
+    tags:
+      - "sti-v*"
   workflow_dispatch:
     inputs:
       versao:
@@ -19,7 +24,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: sti-servidor-${{ inputs.versao }}
+  group: sti-servidor-${{ inputs.versao || github.ref_name }}
   cancel-in-progress: false
 
 env:
@@ -38,8 +43,10 @@ jobs:
 
       - name: Confere o formato da versão
         env:
-          VERSAO: ${{ inputs.versao }}
+          VERSAO_INFORMADA: ${{ inputs.versao }}
         run: |
+          # Disparo manual: usa a versão informada. Disparo por tag: tira o prefixo "sti-v".
+          if [ -n "$VERSAO_INFORMADA" ]; then VERSAO="$VERSAO_INFORMADA"; else VERSAO="${GITHUB_REF_NAME#sti-v}"; fi
           echo "$VERSAO" | grep -Eq '^[0-9]{4}\.[0-9]{1,2}\.[0-9]+$' || {
             echo "::error::use o formato ano.mês.sequência, por exemplo 2026.11.1"; exit 1; }
           echo "VERSAO=$VERSAO" >> "$GITHUB_ENV"
