@@ -1,0 +1,19 @@
+# Somos STI Acesso Remoto - gerador de instaladores (liga so quando for gerar uma versao)
+# Controlado pelo gerador.sh; nao precisa mexer aqui.
+
+services:
+  gerador:
+    image: bryangerlach/rdgen:latest
+    container_name: sti-gerador
+    env_file:
+      - .env.gerador
+    ports:
+      - "${GERADOR_PORTA:-8000}:8000"
+    volumes:
+      - ./gerador/exe:/opt/rdgen/exe:z
+      - ./gerador/png:/opt/rdgen/png:z
+      - ./gerador/temp_zips:/opt/rdgen/temp_zips:z
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    restart: "no"
