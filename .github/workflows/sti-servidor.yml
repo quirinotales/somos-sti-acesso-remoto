@@ -15,6 +15,7 @@ on:
       - sti
     paths:
       - sti/VERSAO
+      - .github/workflows/sti-servidor.yml
   workflow_dispatch:
     inputs:
       versao:
@@ -88,10 +89,31 @@ jobs:
           "$bin/hbbs" --version
           "$bin/hbbr" --version
 
-      - name: O painel embutido é o da STI
+      - name: O servidor sobe e o painel embutido é o da STI
         run: |
-          grep -aq "Somos STI Acesso Remoto" "target/$TARGET/release/hbbs" || {
-            echo "::error::o painel embutido não tem a marca da STI"; exit 1; }
+          # Teste de verdade: liga o servidor numa pasta vazia, só em 127.0.0.1, e pede a página do painel.
+          bin="$PWD/target/$TARGET/release"
+          mkdir -p "$RUNNER_TEMP/teste" && cd "$RUNNER_TEMP/teste"
+          printf 'provider = []\n' > oauth2.toml
+          "$bin/hbbr" > hbbr.log 2>&1 &
+          API_ADDRESS=127.0.0.1 KEY=_ OAUTH2_CONFIG_FILE=oauth2.toml "$bin/hbbs" -r 127.0.0.1:21117 > hbbs.log 2>&1 &
+          ok=nao
+          for _ in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:21114/ui/ -o painel.html 2>/dev/null; then ok=sim; break; fi
+            sleep 1
+          done
+          [ "$ok" = sim ] || { echo "::error::o servidor não respondeu"; tail -20 hbbs.log; exit 1; }
+          grep -q "Somos STI Acesso Remoto" painel.html || {
+            echo "::error::o painel embutido não tem a marca da STI"; head -c 600 painel.html; exit 1; }
+          # A senha de fábrica entra (banco novo) e o idioma pt-BR é aceito no perfil.
+          token=$(curl -fsS -X POST http://127.0.0.1:21114/api/login -H 'Content-Type: application/json' \
+            -d '{"username":"admin","password":"Hello,world!","id":"ci","uuid":"ci"}' | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+          [ -n "$token" ] || { echo "::error::login de teste falhou"; exit 1; }
+          codigo=$(curl -sS -o /dev/null -w '%{http_code}' -X PUT http://127.0.0.1:21114/api/user/profile \
+            -H "Authorization: Bearer $token" -H 'Content-Type: application/json' -d '{"language":"pt-BR"}')
+          [ "$codigo" = 200 ] || { echo "::error::o servidor recusou o idioma pt-BR (HTTP $codigo)"; exit 1; }
+          pkill hbbs || true; pkill hbbr || true
+          echo "Painel da STI respondendo, login e pt-BR conferidos."
 
       - name: Monta o pacote
         run: |
