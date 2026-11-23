@@ -15,5 +15,5 @@ export const STI = {
    * Repositório com o código-fonte desta versão. A licença AGPL-3.0 exige que quem usa o painel
    * consiga chegar ao código: o link do rodapé aponta para cá.
    */
-  repositorio: 'https://github.com/quirinotales/sctgdesk-server',
+  repositorio: 'https://github.com/quirinotales/somos-sti-acesso-remoto',
 } as const
