@@ -17,6 +17,7 @@ Assim dá para receber as correções de segurança do projeto de origem sem ret
 | `sti/` | Tudo o que é só da STI: esta documentação, a marca e os arquivos do servidor |
 | `sti/marca/` | Ícone e logo oficiais usados no painel e no programa |
 | `sti/servidor/` | Instalação e atualização do servidor da STI |
+| `sti/cliente/` | Configuração do programa cliente (nome, marca, servidor, chave pública, travas) |
 | `.github/workflows/sti-*.yml` | Compilações da STI no GitHub Actions |
 | `web/console/sti-tema.cjs` | Cores da marca no painel (um arquivo só) |
 | `web/console/src/i18n/locales/pt-BR/` | Textos do painel em português do Brasil |
@@ -72,6 +73,21 @@ Ele não apaga nada e pode ser rodado de novo.
 
 Depois de criar os usuários no painel, ligue a opção **só-logado**: em `/opt/sti-acesso-remoto/.env`
 mude `STI_SO_LOGADO=Y` e rode `docker compose up -d`. A partir daí só técnico logado controla máquinas.
+
+## Programa cliente (o que vai nas máquinas)
+
+O programa é o RustDesk 1.5.3 compilado com a marca, o servidor, a chave e o endereço do painel da STI.
+A compilação é feita pelo gerador de código aberto [rdgen](https://github.com/bryangerlach/rdgen), num
+fork na conta da STI, porque ele já resolve nome com espaços, ícones e as quatro plataformas
+(Windows, macOS, Linux e Android).
+
+- `sti/cliente/somos-sti-acesso-remoto.json` é a configuração completa: nome, ícone, logo, cores,
+  servidor, chave pública, endereço do painel e as travas de segurança. Carregue esse arquivo no
+  gerador (**Load Configuration**) e gere uma plataforma por vez.
+- A chave que está no arquivo é a **pública** (pode ficar no repositório). A privada nunca sai do servidor.
+
+O cliente próprio deste repositório (`client/`) não é usado: ele só gera Windows e macOS, exige nome
+de uma palavra só e não troca os ícones do Windows.
 
 ## Receber atualizações do projeto de origem
 
