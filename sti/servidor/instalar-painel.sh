@@ -51,6 +51,15 @@ ENDERECO="${2:-}"
 PRIMEIRA_VEZ=nao
 [ -f "$DESTINO/dados/secret_key.txt" ] || PRIMEIRA_VEZ=sim
 
+# Baixa uma URL para um arquivo. Alguns provedores falham ao resolver *.githubusercontent.com:
+# se a tentativa normal falhar, repete resolvendo os nomes por DNS-over-HTTPS (Cloudflare),
+# só para este comando, sem mexer no DNS do sistema.
+baixar() { # $1 = URL, $2 = arquivo de destino
+  curl -fL --retry 2 -sS -o "$2" "$1" 2>/dev/null && return 0
+  echo "  (download direto falhou; tentando com DNS-over-HTTPS)"
+  curl -fL --retry 2 -sS --doh-url https://1.1.1.1/dns-query -o "$2" "$1"
+}
+
 # ---------------------------------------------------------------- 1. download
 titulo "1/6 Download da versão $VERSAO"
 PACOTE="somos-sti-servidor-$VERSAO-linux-amd64"
@@ -58,9 +67,9 @@ BASE="https://github.com/$REPO/releases/download/sti-v$VERSAO"
 VDIR="$DESTINO/versoes/$VERSAO"
 mkdir -p "$VDIR"
 if [ ! -x "$VDIR/$PACOTE/hbbs" ]; then
-  curl -fL --retry 3 -o "$VDIR/$PACOTE.tar.gz" "$BASE/$PACOTE.tar.gz" \
-    || falha "Não consegui baixar $BASE/$PACOTE.tar.gz (a versão já foi publicada no GitHub?)"
-  curl -fL --retry 3 -o "$VDIR/SHA256SUMS" "$BASE/SHA256SUMS" || falha "Não consegui baixar o SHA256SUMS."
+  baixar "$BASE/$PACOTE.tar.gz" "$VDIR/$PACOTE.tar.gz" \
+    || falha "Não consegui baixar $BASE/$PACOTE.tar.gz (a versão já foi publicada no GitHub?). Nada foi alterado."
+  baixar "$BASE/SHA256SUMS" "$VDIR/SHA256SUMS" || falha "Não consegui baixar o SHA256SUMS. Nada foi alterado."
   (cd "$VDIR" && sha256sum -c SHA256SUMS) || falha "O SHA-256 do pacote não confere. Nada foi alterado."
   tar -C "$VDIR" -xzf "$VDIR/$PACOTE.tar.gz"
 fi
