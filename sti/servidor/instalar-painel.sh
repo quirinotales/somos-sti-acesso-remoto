@@ -32,6 +32,8 @@ verde()    { printf '\033[1;32m%s\033[0m\n' "$*"; }
 amarelo()  { printf '\033[1;33m%s\033[0m\n' "$*"; }
 titulo()   { printf '\n\033[1;36m== %s ==\033[0m\n' "$*"; }
 falha()    { vermelho "$*"; exit 1; }
+# Nunca parar em silêncio: qualquer erro não tratado diz em que linha foi.
+trap 'vermelho "Erro inesperado na linha $LINENO (comando: $BASH_COMMAND). Envie esta saída para análise."' ERR
 
 # ---------------------------------------------------------------- conferências iniciais
 [ "$(id -u)" -eq 0 ] || falha "Rode como root."
@@ -188,7 +190,8 @@ publicar_https() {
 
   local ip_publico ip_dns
   ip_publico="$(curl -fsS --max-time 6 https://api.ipify.org 2>/dev/null || true)"
-  ip_dns="$(getent ahostsv4 "$ENDERECO" 2>/dev/null | awk 'NR==1{print $1}')"
+  # "|| true": sem registro DNS o getent devolve erro, e isso não pode derrubar o script.
+  ip_dns="$(getent ahostsv4 "$ENDERECO" 2>/dev/null | awk 'NR==1{print $1}' || true)"
   if [ -z "$ip_dns" ] || [ -z "$ip_publico" ] || [ "$ip_dns" != "$ip_publico" ]; then
     amarelo "O DNS de $ENDERECO ainda não aponta para este servidor (DNS: ${ip_dns:-sem registro}, servidor: ${ip_publico:-?})."
     echo "Crie o registro A (na Cloudflare, nuvem CINZA) e rode este script de novo: ele continua daqui."
