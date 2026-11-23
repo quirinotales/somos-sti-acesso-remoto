@@ -54,6 +54,25 @@ git commit -am "Versão 2026.11.2" && git push origin sti
 O push do arquivo `sti/VERSAO` faz o GitHub Actions compilar sozinho. Ao terminar, a release `sti-v2026.11.1` terá o pacote e o arquivo
 `SHA256SUMS`.
 
+## Instalar ou atualizar o servidor
+
+No servidor, como root (troque `<commit>` pelo commit da versão e `2026.11.1` pela versão):
+
+```bash
+mkdir -p /root/sti-servidor && cd /root/sti-servidor
+for f in instalar-painel.sh Dockerfile docker-compose.yml oauth2.toml; do
+  curl -fsSLO https://raw.githubusercontent.com/quirinotales/somos-sti-acesso-remoto/<commit>/sti/servidor/$f
+done
+bash instalar-painel.sh 2026.11.1 remoto.somossti.com.br
+```
+
+O script baixa a versão, confere o SHA-256, faz cópia de segurança dos dados, troca os containers
+mantendo a mesma chave, troca a senha de fábrica do admin e publica o painel em HTTPS pelo Nginx.
+Ele não apaga nada e pode ser rodado de novo.
+
+Depois de criar os usuários no painel, ligue a opção **só-logado**: em `/opt/sti-acesso-remoto/.env`
+mude `STI_SO_LOGADO=Y` e rode `docker compose up -d`. A partir daí só técnico logado controla máquinas.
+
 ## Receber atualizações do projeto de origem
 
 ```bash

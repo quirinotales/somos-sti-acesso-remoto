@@ -1,0 +1,42 @@
+# Somos STI Acesso Remoto - servidor de conexão com painel
+#
+#   hbbs = servidor de IDs + API + painel web (o painel escuta só em 127.0.0.1:21114, atrás do Nginx com HTTPS)
+#   hbbr = servidor de retransmissão
+#
+# Ajustes ficam no arquivo .env ao lado (endereço, versão, só-logado). Não edite este arquivo.
+
+services:
+  hbbs:
+    image: somos-sti-servidor:${STI_VERSAO}
+    container_name: sti-hbbs
+    command: hbbs -r ${STI_ENDERECO}:21117
+    environment:
+      KEY: "_"                       # só programas com a chave da STI usam este servidor
+      API_ADDRESS: "127.0.0.1"       # API e painel só por dentro da máquina (Nginx faz o HTTPS)
+      LOGGED_IN_ONLY: "${STI_SO_LOGADO:-N}"   # Y = só técnico logado consegue controlar uma máquina
+      OAUTH2_CONFIG_FILE: "oauth2.toml"
+    volumes:
+      - ./dados:/dados:z
+    network_mode: host
+    depends_on:
+      - hbbr
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  hbbr:
+    image: somos-sti-servidor:${STI_VERSAO}
+    container_name: sti-hbbr
+    command: hbbr
+    environment:
+      KEY: "_"
+    volumes:
+      - ./dados:/dados:z
+    network_mode: host
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

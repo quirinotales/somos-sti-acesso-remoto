@@ -1,0 +1,3 @@
+# Somos STI Acesso Remoto: login somente com usuário e senha do painel.
+# Para habilitar login externo (GitHub, OIDC), use o painel: Configurações > Provedores OAuth2.
+provider = []
